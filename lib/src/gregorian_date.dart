@@ -14,7 +14,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import 'abstract_date.dart';
-import 'dart:math';
 
 /**
  *
@@ -117,37 +116,37 @@ class GregorianDate extends ADMYDate
     * zero. Year -1 is the last year before Common Era. Anyway, the valid
     * range for this variable is 1600..2299
     */
-    int _year;
+    int _year = 0;
     /**
     * The month in the year. There are twelve months in a year. The value
     * is in the range 1..12, while 1 denotes January, 2 denotes February ..
     * 12 denotes December
     */
-    int _month;
+    int _month = 0;
     /**
     * The day in the month. The value is in the range 1..31 .
     */
-    int _day;
+    int _day = 0;
     /**
     * The number of days in the year. The value may be only 365 or 366.
     */
-    int _yearLength;
+    int _yearLength = 0;
     /**
     * The number of days from the beginning to the year's first day (1st of
     * January of the year)
     */
-    int _yearFirstDay;
+    int _yearFirstDay = 0;
     /**
     * The day in the year (or number of days after year beginning). 0
     * denotes the year's first day (1st of January of the year). the value
     * is in the range 0..364 in regular year and in the range 0..365 in a
     * leap year.
     */
-    int _dayInYear;
+    int _dayInYear = 0;
     /**
     * Is the date valid?
     */
-    bool _valid;
+    bool _valid = false;
     /** 
      * did last operation generated the desired date?
      */

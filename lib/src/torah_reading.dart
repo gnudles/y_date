@@ -207,7 +207,7 @@ class SingleTorahReading {
   SingleTorahReading(this.type, {this.sidra = Sidra.__NONE, this.text});
   TorahReadingType type;
   Sidra sidra;
-  BibleText text;
+  BibleText? text;
 }
 
 /*
@@ -317,8 +317,8 @@ class BibleIndex {
 }
 
 class BibleParagraph {
-  int m_start_index;
-  int m_end_index;
+  late int m_start_index;
+  late int m_end_index;
 
   BibleParagraph(int start, int end) {
     m_start_index = start;
@@ -327,15 +327,15 @@ class BibleParagraph {
 }
 
 class BibleText {
-  String m_name;
-  List<BibleParagraph> m_paragraphs;
+  late String m_name;
+  late List<BibleParagraph> m_paragraphs;
   BibleText(String name) {
     m_name = name;
-    m_paragraphs = List();
+    m_paragraphs = [];
   }
   BibleText.withParagraph(String name, BibleParagraph p) {
     m_name = name;
-    m_paragraphs = List();
+    m_paragraphs = [];
     m_paragraphs.add(p);
   }
   BibleText.from(BibleText obj) {
@@ -475,7 +475,7 @@ class TorahReading {
   static const int NUM_SIDRA_54 = 54;
 
   static final List<String> sidraToken =
-      Sidra.values.getRange(0, 55).map((e) => "sidra_" + e.toString());
+      Sidra.values.getRange(0, 55).map((e) => "sidra_" + e.toString()).toList();
   /*
             = {
                 "",
@@ -688,7 +688,7 @@ class TorahReading {
             }
         }
         
-        List<SingleTorahReading>  readList;
+        List<SingleTorahReading>  readList = [];
         if (parasha !=  Sidra.__NONE)
         {
             
@@ -892,8 +892,8 @@ class TorahReading {
         }
         return lstr;
     }*/
-  static final List<List<Int8List>> sidra_reading =
-      List.generate(2, (i) => List(HebrewDateToolkit.N_YEAR_TYPES));
+  static final List<List<Int8List?>> sidra_reading =
+      List.generate(2, (i) => List.filled(HebrewDateToolkit.N_YEAR_TYPES, null));
   //static final byte[][][] sidra_reading = new byte[2][][];//[diaspora][year_type][shabbat]
   //reverse access:
   static final List<List<Int8List>> sidra_to_shabbat = List.generate(
@@ -941,7 +941,7 @@ class TorahReading {
         year_diw +
             1); //the year type out of 14 possible types ( the method gives us range of 1..14)
     if (sidra_reading[diaspora ? 0 : 1][ldt - 1] != null) {
-      return sidra_reading[diaspora ? 0 : 1][ldt - 1];
+      return sidra_reading[diaspora ? 0 : 1][ldt - 1]!;
     }
     int joining = SIDRA_JOIN[diaspora ? 0 : 1][ldt - 1];
 
@@ -1021,7 +1021,6 @@ class TorahReading {
     Int8List rev_access = sidra_to_shabbat[diaspora ? 0 : 1][ldt - 1];
     if (rev_access[0] != 0) return rev_access;
     rev_access[Sidra.VEZOT_HABERACHA.index - 1] = -1; //Vezot Habracha.
-    int r = 0;
     for (int i = 0;
         i <
             reading.length -

@@ -96,6 +96,7 @@ class HebrewDateToolkit {
           HebrewDate._monthFromMonthId(isLeap(yearLength), monthId), day);
   static int yearLengthDayType(int size_of_year, int year_first_dw) =>
       HebrewDate._ld_year_type(size_of_year, year_first_dw);
+
   /// Number of year types. an year type is determined by the day in week of the first day and the year's length. Only 14 combinations are valid.
   static const int N_YEAR_TYPES = 14;
 }
@@ -191,7 +192,6 @@ class HebrewDate extends ADMYDate {
   /// This is the upper bound of the jewish dating system.
   static const int DAYS_OF_6001 = 2191466;
 
-
   /// Length of hour in hour-parts (1080).
   static const int HOUR = 1080;
 
@@ -206,7 +206,6 @@ class HebrewDate extends ADMYDate {
 
   /// Molad of the estimated first month was on monday of the seven days of genesis, in the sixth hour (starting from sunset).
   static final int MOLAD = DayOfWeek.Monday.index * DAY + HP(5, 204);
-
 
   /// The number of months in 19 years.
   /// The jewish dating system has cycles of 19 years where 7 of the 19 has 13 month in year, and the other 12 has 12 month in year.
@@ -353,22 +352,22 @@ class HebrewDate extends ADMYDate {
   int _year = 0;
 
   /// Month in year. valid range 1..12, or 1..13 in leap year.
-  int _month;
+  int _month = 0;
 
   /// Day in month. valid range: 1..30.
-  int _day;
+  int _day = 0;
 
   /// hour-parts since the beginning of genesis of the first day in the current year.
-  int _yearGParts;
+  int _yearGParts = 0;
 
   /// Length of the year in days. The only possible values are - 353, 354, 355, 383, 384, 385.
-  int _yearLength;
+  int _yearLength = 0;
 
   /// The GDN of the first day in the current year.
-  int _yearFirstDay;
+  int _yearFirstDay = 0;
 
   /// Days since first day in the year. For the first day in the year the value will be 0.
-  int _dayInYear;
+  int _dayInYear = 0;
 
   /// Whether the date object represents a valid date.
   bool _valid = false;
@@ -533,6 +532,7 @@ class HebrewDate extends ADMYDate {
           _calculateDayInYear(this._yearLength, this._month, this._day);
       this._valid = true;
       desired = stateChanged();
+      return desired;
     } else {
       desired = false;
       return false;
@@ -703,7 +703,7 @@ class HebrewDate extends ADMYDate {
 
   static int _yearLengthType(int yearLength) {
     //0 hasera,1 kesidra,2 melea,3 meuberet hasera,4 meuberet kesidra,5 meuberet melea
-    return {353: 0, 354: 1, 355: 2, 383: 3, 384: 4, 385: 5}[yearLength];
+    return {353: 0, 354: 1, 355: 2, 383: 3, 384: 4, 385: 5}[yearLength]!;
     //return ((year_length % 10) - 3) + (year_length - 350) ~/ 10;
   }
 
@@ -791,7 +791,7 @@ class HebrewDate extends ADMYDate {
   int get firstDayOfMonthGDN => monthFirstDay();
   DayOfWeek get yearFirstDayWeekDay //starts from one
   {
-    return DayOfWeek.values[this._yearFirstDay % 7] ;
+    return DayOfWeek.values[this._yearFirstDay % 7];
   }
 
   static int _monthFromIDByYear(int year, HebrewMonth monthId) {
@@ -1072,105 +1072,142 @@ class HebrewDate extends ADMYDate {
     int day_of_pessah = HebrewDateToolkit.dayInYearByMonthId(
             _yearLength, HebrewMonth.NISAN, 15) +
         _yearFirstDay;
-    return HebrewYearSign([
-      HebrewAlphaBet.values[_yearFirstDay % 7],
-      [
-        HebrewAlphaBet.Chet,
-        HebrewAlphaBet.Kaf,
-        HebrewAlphaBet.Shin
-      ][_yearLength % 10 - 3],
-      HebrewAlphaBet.values[day_of_pessah % 7]
-    ],HebrewDateToolkit.isLeap(_yearLength)?YearLeapType.MEUBERET:YearLeapType.PESHUTA);
+    return HebrewYearSign(
+        [
+          HebrewAlphaBet.values[_yearFirstDay % 7],
+          [
+            HebrewAlphaBet.Chet,
+            HebrewAlphaBet.Kaf,
+            HebrewAlphaBet.Shin
+          ][_yearLength % 10 - 3],
+          HebrewAlphaBet.values[day_of_pessah % 7]
+        ],
+        HebrewDateToolkit.isLeap(_yearLength)
+            ? YearLeapType.MEUBERET
+            : YearLeapType.PESHUTA);
   }
+
   bool get isRoshChodesh {
-        return (_day == 30 || _day == 1);
-    }
+    return (_day == 30 || _day == 1);
+  }
+
   ChanukkahDay get dayOfChanukkah {
-        int diy = dayInYear;
-        int chnkday = HebrewDateToolkit.dayInYearByMonthId(_yearLength, HebrewMonth.KISLEV, 25);
-        return (diy >= chnkday && diy < chnkday + 8) ?
-        ChanukkahDay.values[ diy - chnkday + ChanukkahDay.DAY_I.index] : ChanukkahDay.NONE;
-    }
-    /**
+    int diy = dayInYear;
+    int chnkday = HebrewDateToolkit.dayInYearByMonthId(
+        _yearLength, HebrewMonth.KISLEV, 25);
+    return (diy >= chnkday && diy < chnkday + 8)
+        ? ChanukkahDay.values[diy - chnkday + ChanukkahDay.DAY_I.index]
+        : ChanukkahDay.NONE;
+  }
+
+  /**
      * if nine av is nidcha (postponed), return ten av.
      * @return the day in year of the nine av fast day
      */
-    int nineAvDayInYear() {
-        int nine_av = HebrewDateToolkit.dayInYearByMonthId(_yearLength, HebrewMonth.AV, 9); // 9 in Av.
-        if ((nine_av + _yearFirstDay) % 7 == ADate.SATURDAY) {
-            ++nine_av;
-        }
-        return nine_av;
+  int nineAvDayInYear() {
+    int nine_av = HebrewDateToolkit.dayInYearByMonthId(
+        _yearLength, HebrewMonth.AV, 9); // 9 in Av.
+    if ((nine_av + _yearFirstDay) % 7 == ADate.SATURDAY) {
+      ++nine_av;
     }
-    /**
+    return nine_av;
+  }
+
+  /**
      * @return Whether current date is Nine at Av or not.
      */
-    bool get isNineAv{
+  bool get isNineAv {
+    return dayInYear == nineAvDayInYear(); // 9 in Av.
+  }
 
-        return dayInYear == nineAvDayInYear(); // 9 in Av.
-    }
-    bool get isPurimPerazim {
-        return (monthID == HebrewMonth.ADAR || monthID == HebrewMonth.ADAR_II) && dayInMonth == 14;
-    }
-    bool get isShushanPurim {
-        return (monthID == HebrewMonth.ADAR || monthID == HebrewMonth.ADAR_II) && dayInMonth == 15;
-    }
-    bool get isRoshHaShana {
-        return dayInYear < 2;
-    }
-    bool get isShabbat {
-        return dayOfWeek == DayOfWeek.Saturday;
-    }
-    bool get isSheniChamishi {
-        return dayOfWeek == DayOfWeek.Thursday || dayOfWeek == DayOfWeek.Monday;
-    }
-    
-    bool get isKippurDay {
-        const int KIPPUR_DAY_IN_YEAR = 9;// 10 in Tishrei.
-        return dayInYear == KIPPUR_DAY_IN_YEAR; 
-    }
-    bool get isTzomGedaliah {
-        const int THIRD_DAY = 2;// 3 in Tishrei.
-        const int FOURTH_DAY = 3;// 4 in Tishrei.
-        return (yearFirstDayWeekDay == DayOfWeek.Thursday)? //year started on thursday, so the tzom nidkha
-                (dayInYear == FOURTH_DAY) : (dayInYear == THIRD_DAY); 
-    }
-    bool get isTzomTenthTevet {
-        return  (monthID == HebrewMonth.TEVET && dayInMonth == 10);
-    }
-    bool get isTaanitEsther {
-        return (monthID == HebrewMonth.ADAR || monthID == HebrewMonth.ADAR_II) &&
-                ((dayInMonth == 11 &&
-                 dayOfWeek == DayOfWeek.Thursday) || (dayInMonth == 13 && dayOfWeek != DayOfWeek.Saturday));
-    }
-    bool get isTzomSeventeenTammuz {
-        return (monthID == HebrewMonth.TAMMUZ) &&
-                ( (dayInMonth == 18 && dayOfWeek == DayOfWeek.Sunday)
-                || (dayInMonth == 17 && dayOfWeek != DayOfWeek.Saturday));
-    }
-    bool isSuccotShminiAtzeret(bool diaspora) {
-        int from = 15; // 15 in Tishrei
-        int to = diaspora? 23 : 22; // 23 or 22 in Tishrei
-        return monthID == HebrewMonth.TISHREI && dayInMonth>= from && dayInMonth<=to;
-    }
-    bool isPassover(bool diaspora) {
-        int from = 15; // 15 in Nisan
-        int to = diaspora? 22 : 21; // 22 or 21 in Nisan
-        return monthID == HebrewMonth.NISAN && dayInMonth>= from && dayInMonth<=to;
-    }
-    bool isShavuoth(bool diaspora) {
-        int from = 6; // 6 in Sivan
-        int to = diaspora? 7 : 6; // 7 or 6 in Sivan
-        return monthID == HebrewMonth.SIVAN && dayInMonth>= from && dayInMonth<=to;
-    }
-    /*
+  bool get isPurimPerazim {
+    return (monthID == HebrewMonth.ADAR || monthID == HebrewMonth.ADAR_II) &&
+        dayInMonth == 14;
+  }
+
+  bool get isShushanPurim {
+    return (monthID == HebrewMonth.ADAR || monthID == HebrewMonth.ADAR_II) &&
+        dayInMonth == 15;
+  }
+
+  bool get isRoshHaShana {
+    return dayInYear < 2;
+  }
+
+  bool get isShabbat {
+    return dayOfWeek == DayOfWeek.Saturday;
+  }
+
+  bool get isSheniChamishi {
+    return dayOfWeek == DayOfWeek.Thursday || dayOfWeek == DayOfWeek.Monday;
+  }
+
+  bool get isKippurDay {
+    const int KIPPUR_DAY_IN_YEAR = 9; // 10 in Tishrei.
+    return dayInYear == KIPPUR_DAY_IN_YEAR;
+  }
+
+  bool get isTzomGedaliah {
+    const int THIRD_DAY = 2; // 3 in Tishrei.
+    const int FOURTH_DAY = 3; // 4 in Tishrei.
+    return (yearFirstDayWeekDay == DayOfWeek.Thursday)
+        ? //year started on thursday, so the tzom nidkha
+        (dayInYear == FOURTH_DAY)
+        : (dayInYear == THIRD_DAY);
+  }
+
+  bool get isTzomTenthTevet {
+    return (monthID == HebrewMonth.TEVET && dayInMonth == 10);
+  }
+
+  bool get isTaanitEsther {
+    return (monthID == HebrewMonth.ADAR || monthID == HebrewMonth.ADAR_II) &&
+        ((dayInMonth == 11 && dayOfWeek == DayOfWeek.Thursday) ||
+            (dayInMonth == 13 && dayOfWeek != DayOfWeek.Saturday));
+  }
+
+  bool get isTzomSeventeenTammuz {
+    return (monthID == HebrewMonth.TAMMUZ) &&
+        ((dayInMonth == 18 && dayOfWeek == DayOfWeek.Sunday) ||
+            (dayInMonth == 17 && dayOfWeek != DayOfWeek.Saturday));
+  }
+
+  bool isSuccotShminiAtzeret(bool diaspora) {
+    int from = 15; // 15 in Tishrei
+    int to = diaspora ? 23 : 22; // 23 or 22 in Tishrei
+    return monthID == HebrewMonth.TISHREI &&
+        dayInMonth >= from &&
+        dayInMonth <= to;
+  }
+
+  bool isPassover(bool diaspora) {
+    int from = 15; // 15 in Nisan
+    int to = diaspora ? 22 : 21; // 22 or 21 in Nisan
+    return monthID == HebrewMonth.NISAN &&
+        dayInMonth >= from &&
+        dayInMonth <= to;
+  }
+
+  bool isShavuoth(bool diaspora) {
+    int from = 6; // 6 in Sivan
+    int to = diaspora ? 7 : 6; // 7 or 6 in Sivan
+    return monthID == HebrewMonth.SIVAN &&
+        dayInMonth >= from &&
+        dayInMonth <= to;
+  }
+
+  /*
     including Shmini Atzeret
     */
-    bool isRegel(bool diaspora) {
-        return (isShavuoth(diaspora) || isSuccotShminiAtzeret(diaspora) || isPassover(diaspora) );
-    }
-    bool isSimchatTorah(bool diaspora) {
-        int simchatTorahDayInMonth = diaspora? 23 : 22;
-        return monthID == HebrewMonth.TISHREI && dayInMonth == simchatTorahDayInMonth;
-    }
+  bool isRegel(bool diaspora) {
+    return (isShavuoth(diaspora) ||
+        isSuccotShminiAtzeret(diaspora) ||
+        isPassover(diaspora));
+  }
+
+  bool isSimchatTorah(bool diaspora) {
+    int simchatTorahDayInMonth = diaspora ? 23 : 22;
+    return monthID == HebrewMonth.TISHREI &&
+        dayInMonth == simchatTorahDayInMonth;
+  }
 }

@@ -177,7 +177,7 @@ class AnnualEvents {
     JewishEvents.JERUSALEMS_DAY.index: EV_NATIONAL,
     JewishEvents.FAMILY_DAY.index: EV_NATIONAL,
     JewishEvents.YitzhakRabinMemorial.index: EV_NATIONAL | EV_MEMORIAL,
-  }.values;
+  }.values.toList(growable: false);
 
   static final List<_EventEntry> event_db = [
     // month_id,day,array index,# of days,jump/dhia(if #_days==1) if falls on saturday. if dhia>=7 then dhia%7 is the only day of week possible
@@ -263,7 +263,7 @@ class AnnualEvents {
         HebrewMonth.SIVAN, 7, JewishEvents.SDOG_SHAVUOT, 1, 0), //Shavu'ot II
   ];
 
-  Int8List current_year_events;
+  Int8List? current_year_events;
   bool diaspora;
   int year;
   int year_length;
@@ -287,15 +287,18 @@ class AnnualEvents {
         return out;
     }*/
 
-  int getYearEventTypeForDay(HebrewDate d) {
-    return eventsType[current_year_events[d.dayInYear]];
+  int? getYearEventTypeForDay(HebrewDate d) {
+    if (current_year_events != null) {
+      return eventsType[current_year_events![d.dayInYear]];
+    }
+    return null;
   }
 
   static int getEventType(int event_id) {
     return eventsType[event_id];
   }
 
-  Int8List getYearEvents() {
+  Int8List? getYearEvents() {
     return current_year_events;
   }
 
@@ -308,16 +311,13 @@ class AnnualEvents {
         }
         return new_arr;
     }*/
-  AnnualEvents(int year, int year_length, int year_first_day, bool diaspora) {
-    this.year = year;
-    this.year_length = year_length;
-    this.diaspora = diaspora;
-    int year_ld_t =
-        HebrewDateToolkit.yearLengthDayType(year_length, year_first_day % 7 + 1);
+  AnnualEvents(this.year, this.year_length, int year_first_day, this.diaspora) {
+    int year_ld_t = HebrewDateToolkit.yearLengthDayType(
+        year_length, year_first_day % 7 + 1);
     _initializeYear(diaspora, year_ld_t, year_length, year_first_day);
     current_year_events =
-        Int8List.fromList(annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1]);
-    addNationalEvents(current_year_events, year, year_length, year_first_day);
+        Int8List.fromList(annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1]!);
+    addNationalEvents(current_year_events!, year, year_length, year_first_day);
   }
   static void addNationalEvents(
       Int8List year_events, int year, int year_length, int year_first_day) {
@@ -387,20 +387,21 @@ class AnnualEvents {
     }
   }
 
-  static List<List<Int8List>> annualEventsLists = List.generate(
+  static List<List<Int8List?>> annualEventsLists = List.generate(
       2,
       (i) => List.filled(HebrewDateToolkit.N_YEAR_TYPES,
           null)); //new Int8List [2][HebrewDate.N_YEAR_TYPES][];//[diaspora][year_type][day_in_year]
-  static List<Map<int, int>> annualEventsDelayLists = List(HebrewDateToolkit
-      .N_YEAR_TYPES); // = new short [HebrewDate.N_YEAR_TYPES][4];//[year_type][5]->[day_in_year]
+  static List<Map<int, int>?> annualEventsDelayLists = List.filled(
+      HebrewDateToolkit.N_YEAR_TYPES,
+      null); // = new short [HebrewDate.N_YEAR_TYPES][4];//[year_type][5]->[day_in_year]
   /*static String getEventForDay(HebrewDate d, bool diaspora, YDateLanguage language)
     {
         return language.getToken(events_str_id[getEvents(d, diaspora)[d.dayInYear()]]);
     }*/
 
   static Int8List getEventsByDate(HebrewDate d, bool diaspora) {
-    int yearLDType =
-        HebrewDateToolkit.yearLengthDayType(d.yearLength, d.firstDayOfYearGDN % 7 + 1);
+    int yearLDType = HebrewDateToolkit.yearLengthDayType(
+        d.yearLength, d.firstDayOfYearGDN % 7 + 1);
     return _initializeYear(
         diaspora, yearLDType, d.yearLength, d.firstDayOfYearGDN);
   }
@@ -408,25 +409,28 @@ class AnnualEvents {
   static const int PRECEDE = 512;
   static const int LATE = 1024;
   static int isRejected(HebrewDate d) {
-    int yearLDType =
-        HebrewDateToolkit.yearLengthDayType(d.yearLength, d.firstDayOfYearGDN % 7 + 1);
-    Map<int, int> dhia = annualEventsDelayLists[yearLDType - 1];
-    if (annualEventsLists[0][yearLDType - 1] != null) {
-      int diy = d.dayInYear;
-      if (dhia.containsKey(diy)) return dhia[diy];
+    int yearLDType = HebrewDateToolkit.yearLengthDayType(
+        d.yearLength, d.firstDayOfYearGDN % 7 + 1);
+    if (annualEventsDelayLists[yearLDType - 1] != null) {
+      Map<int, int> dhia = annualEventsDelayLists[yearLDType - 1]!;
+      if (annualEventsLists[0][yearLDType - 1] != null) {
+        int diy = d.dayInYear;
+        if (dhia.containsKey(diy)) return dhia[diy]!;
+      }
+    } else {
+      throw AssertionError("annualEventsDelayLists[yearLDType - 1] != null");
     }
     return 0;
   }
 
-  static Int8List _getEvents(
-      int yearLength, int yearFirstDay, bool diaspora) {
+  static Int8List _getEvents(int yearLength, int yearFirstDay, bool diaspora) {
     int yearLDType =
         HebrewDateToolkit.yearLengthDayType(yearLength, yearFirstDay % 7 + 1);
     return _initializeYear(diaspora, yearLDType, yearLength, yearFirstDay);
   }
 
   static void _expandDB(int yearLength, int yearFirstDay,
-      List<_EventEntry> evdb, Int8List yearEvents, Map<int, int> dhia) {
+      List<_EventEntry> evdb, Int8List yearEvents, Map<int, int>? dhia) {
     bool leap = HebrewDateToolkit.isLeap(yearLength);
     for (int ev = 0; ev < evdb.length; ++ev) {
       HebrewMonth monthId = evdb[ev].monthId;
@@ -472,19 +476,20 @@ class AnnualEvents {
   static Int8List _initializeYear(
       bool diaspora, int year_ld_t, int year_length, int year_first_day) {
     if (annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1] == null) {
-      annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1] = Int8List(year_length);
+      annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1] =
+          Int8List(year_length);
       annualEventsDelayLists[year_ld_t - 1] = {};
       _expandDB(
           year_length,
           year_first_day,
           event_db,
-          annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1],
+          annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1]!,
           annualEventsDelayLists[year_ld_t - 1]);
       if (diaspora)
         _expandDB(year_length, year_first_day, event_db_diaspora,
-            annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1], null);
+            annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1]!, null);
     }
-    return annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1];
+    return annualEventsLists[diaspora ? 1 : 0][year_ld_t - 1]!;
   }
 
 /*
