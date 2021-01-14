@@ -20,3 +20,4 @@ export 'src/hebrew_date.dart' hide HebrewDateToolkit;
 export 'src/gregorian_date.dart';
 export 'src/annual_events.dart';
 export 'src/torah_reading.dart';
+export 'src/abstract_date.dart';

@@ -769,10 +769,9 @@ class HebrewDate extends ADMYDate {
     return DAYS_OF_4119;
   }
 
-  int monthFirstDay() {
+  int get firstDayOfMonthGDN {
     //days since beginning
-    int yearLen_t = _yearLengthType(this._yearLength);
-    return this._yearFirstDay + _monthsDaysOffsets[yearLen_t][this._month - 1];
+    return _yearFirstDay + _dayInYear - _day + 1;
   }
 
   int monthIdFirstDay(HebrewMonth monthId) {
@@ -788,7 +787,7 @@ class HebrewDate extends ADMYDate {
   int get firstDayOfYearGDN => this._yearFirstDay;
   bool get leapYear => (this._yearLength > 355);
   @override
-  int get firstDayOfMonthGDN => monthFirstDay();
+
   DayOfWeek get yearFirstDayWeekDay //starts from one
   {
     return DayOfWeek.values[this._yearFirstDay % 7];
