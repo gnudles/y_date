@@ -422,12 +422,22 @@ class GregorianDate extends ADMYDate
     @override
     int get previousMonthLength
     {
-       if (this._month == 1)//December is always 31 days
+       if (this._month == 1)// prev month December is always 31 days
        {
            return 31;
        }
        int mo_year_t = _yearLength - 365;
-       return months_days_offsets[mo_year_t][_month - 1] - months_days_offsets[mo_year_t][_month - 2];
+       return months_days_offsets[mo_year_t][(_month - 1)] - months_days_offsets[mo_year_t][(_month - 1) - 1];
+    }
+    @override
+    int get nextMonthLength
+    {
+       if (this._month == 12)//next month January is always 31 days
+       {
+           return 31;
+       }
+       int mo_year_t = _yearLength - 365; //isLeap
+       return months_days_offsets[mo_year_t][(_month - 1) + 2] - months_days_offsets[mo_year_t][(_month - 1) + 1];
     }
 
     @override

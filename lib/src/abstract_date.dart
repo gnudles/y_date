@@ -219,6 +219,7 @@ abstract class ADMYDate extends ADate {
   int get yearLength;
   int get monthLength;
   int get previousMonthLength;
+  int get nextMonthLength;
   int get firstDayOfYearGDN;
   int get firstDayOfMonthGDN;
 }

@@ -397,6 +397,14 @@ class HebrewDate extends ADMYDate {
     }
     return monthLengthInYear(this._yearLength, this._month - 1);
   }
+  @override
+  int get nextMonthLength {
+    if (this.monthID == HebrewMonth.ELUL) //next month Tishrei is always 29 days
+    {
+      return 30;
+    }
+    return monthLengthInYear(this._yearLength, this._month + 1);
+  }
 
   static int monthLengthInYear(int yearLength, int month) {
     int yearLenType = _yearLengthType(yearLength);
