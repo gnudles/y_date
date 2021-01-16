@@ -397,6 +397,7 @@ class HebrewDate extends ADMYDate {
     }
     return monthLengthInYear(this._yearLength, this._month - 1);
   }
+
   @override
   int get nextMonthLength {
     if (this.monthID == HebrewMonth.ELUL) //next month Tishrei is always 29 days
@@ -795,7 +796,6 @@ class HebrewDate extends ADMYDate {
   int get firstDayOfYearGDN => this._yearFirstDay;
   bool get leapYear => (this._yearLength > 355);
   @override
-
   DayOfWeek get yearFirstDayWeekDay //starts from one
   {
     return DayOfWeek.values[this._yearFirstDay % 7];
@@ -812,15 +812,21 @@ class HebrewDate extends ADMYDate {
   HebrewMonth get monthID {
     return _monthToMonthId(calculateYearMonths(_year) == 13, this._month);
   }
+
   HebrewMonth get nextMonthID {
     int monthsInYear = calculateYearMonths(_year);
-    if (this._month == monthsInYear)
-      return HebrewMonth.TISHREI;
+    if (this._month == monthsInYear) return HebrewMonth.TISHREI;
     return _monthToMonthId(monthsInYear == 13, this._month + 1);
   }
-    HebrewMonth get previousMonthID {
-    if (this._month == 1)
-    {
+
+  List<HebrewMonth> yearMonths() {
+    int monthsInYear = calculateYearMonths(_year);
+    return List.generate(monthsInYear,
+        (index) => _monthToMonthId(monthsInYear == 13, index + 1));
+  }
+
+  HebrewMonth get previousMonthID {
+    if (this._month == 1) {
       return HebrewMonth.ELUL;
     }
     int monthsInYear = calculateYearMonths(_year);
