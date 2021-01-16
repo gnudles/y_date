@@ -445,7 +445,7 @@ class HebrewDate extends ADMYDate {
 
   /// Simple copy constructor.
   /// note that event handler and sync group are not cloned.
-  HebrewDate.from(HebrewDate o) {
+  HebrewDate.copyFrom(HebrewDate o) {
     this._valid = o._valid;
     this._year = o._year;
     this._month = o._month;
@@ -803,6 +803,20 @@ class HebrewDate extends ADMYDate {
 
   HebrewMonth get monthID {
     return _monthToMonthId(calculateYearMonths(_year) == 13, this._month);
+  }
+  HebrewMonth get nextMonthID {
+    int monthsInYear = calculateYearMonths(_year);
+    if (this._month == monthsInYear)
+      return HebrewMonth.TISHREI;
+    return _monthToMonthId(monthsInYear == 13, this._month + 1);
+  }
+    HebrewMonth get previousMonthID {
+    if (this._month == 1)
+    {
+      return HebrewMonth.ELUL;
+    }
+    int monthsInYear = calculateYearMonths(_year);
+    return _monthToMonthId(monthsInYear == 13, this._month - 1);
   }
 
   static HebrewMonth _monthToMonthId(bool leapYear, int month) {

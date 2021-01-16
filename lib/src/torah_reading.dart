@@ -536,7 +536,7 @@ class TorahReading {
             };*/
 
   static NamedShabbat FourParshiotEnum(HebrewDate h) {
-    HebrewDate tweaked = new HebrewDate.from(h);
+    HebrewDate tweaked = new HebrewDate.copyFrom(h);
 
     if (h.dayOfWeek == DayOfWeek.Saturday) {
       tweaked.seekBy(6);
