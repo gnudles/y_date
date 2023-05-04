@@ -312,7 +312,7 @@ class AnnualEvents {
         return new_arr;
     }*/
   AnnualEvents(this.year, this.year_length, int year_first_day, this.diaspora) {
-    int year_ld_t = HebrewDateToolkit.yearLengthDayType(
+    int year_ld_t = YDateUtils.yearLengthDayType(
         year_length, year_first_day % 7 + 1);
     _initializeYear(diaspora, year_ld_t, year_length, year_first_day);
     current_year_events =
@@ -324,7 +324,7 @@ class AnnualEvents {
     //Holocaust day
     if (year >= 5718) //1958
     {
-      int day_in_year = HebrewDateToolkit.dayInYearByMonthId(
+      int day_in_year = YDateUtils.dayInYearByMonthId(
           year_length, HebrewMonth.NISAN, 27);
       int dayweek = (day_in_year + year_first_day) % 7;
       if (dayweek == ADate.FRIDAY) //friday
@@ -339,7 +339,7 @@ class AnnualEvents {
     //Yom Azma'ut and Yom HaZikaron
     if (year >= 5708) //1948
     {
-      int day_in_year = HebrewDateToolkit.dayInYearByMonthId(
+      int day_in_year = YDateUtils.dayInYearByMonthId(
           year_length, HebrewMonth.IYAR, 5);
       int dayweek = (day_in_year + year_first_day) % 7;
 
@@ -363,21 +363,21 @@ class AnnualEvents {
     //Jerusalem day
     if (year >= 5728) //1968
     {
-      int day_in_year = HebrewDateToolkit.dayInYearByMonthId(
+      int day_in_year = YDateUtils.dayInYearByMonthId(
           year_length, HebrewMonth.IYAR, 28);
       year_events[day_in_year] = JewishEvents.JERUSALEMS_DAY.index;
     }
     //Family day
     if (year >= 5733) //1973
     {
-      int day_in_year = HebrewDateToolkit.dayInYearByMonthId(
+      int day_in_year = YDateUtils.dayInYearByMonthId(
           year_length, HebrewMonth.SHEVAT, 30);
       year_events[day_in_year] = JewishEvents.FAMILY_DAY.index;
     }
     //Rabin's Day
     if (year >= 5758) //cheshvan 1997
     {
-      int day_in_year = HebrewDateToolkit.dayInYearByMonthId(
+      int day_in_year = YDateUtils.dayInYearByMonthId(
           year_length, HebrewMonth.CHESHVAN, 12);
       int dayweek = (day_in_year + year_first_day) % 7;
       if (dayweek == ADate.FRIDAY) {
@@ -389,10 +389,10 @@ class AnnualEvents {
 
   static List<List<Int8List?>> annualEventsLists = List.generate(
       2,
-      (i) => List.filled(HebrewDateToolkit.N_YEAR_TYPES,
+      (i) => List.filled(YDateUtils.N_YEAR_TYPES,
           null)); //new Int8List [2][HebrewDate.N_YEAR_TYPES][];//[diaspora][year_type][day_in_year]
   static List<Map<int, int>?> annualEventsDelayLists = List.filled(
-      HebrewDateToolkit.N_YEAR_TYPES,
+      YDateUtils.N_YEAR_TYPES,
       null); // = new short [HebrewDate.N_YEAR_TYPES][4];//[year_type][5]->[day_in_year]
   /*static String getEventForDay(HebrewDate d, bool diaspora, YDateLanguage language)
     {
@@ -400,7 +400,7 @@ class AnnualEvents {
     }*/
 
   static Int8List getEventsByDate(HebrewDate d, bool diaspora) {
-    int yearLDType = HebrewDateToolkit.yearLengthDayType(
+    int yearLDType = YDateUtils.yearLengthDayType(
         d.yearLength, d.firstDayOfYearGDN % 7 + 1);
     return _initializeYear(
         diaspora, yearLDType, d.yearLength, d.firstDayOfYearGDN);
@@ -409,7 +409,7 @@ class AnnualEvents {
   static const int PRECEDE = 512;
   static const int LATE = 1024;
   static int isRejected(HebrewDate d) {
-    int yearLDType = HebrewDateToolkit.yearLengthDayType(
+    int yearLDType = YDateUtils.yearLengthDayType(
         d.yearLength, d.firstDayOfYearGDN % 7 + 1);
     if (annualEventsDelayLists[yearLDType - 1] != null) {
       Map<int, int> dhia = annualEventsDelayLists[yearLDType - 1]!;
@@ -425,13 +425,13 @@ class AnnualEvents {
 
   static Int8List _getEvents(int yearLength, int yearFirstDay, bool diaspora) {
     int yearLDType =
-        HebrewDateToolkit.yearLengthDayType(yearLength, yearFirstDay % 7 + 1);
+        YDateUtils.yearLengthDayType(yearLength, yearFirstDay % 7 + 1);
     return _initializeYear(diaspora, yearLDType, yearLength, yearFirstDay);
   }
 
   static void _expandDB(int yearLength, int yearFirstDay,
       List<_EventEntry> evdb, Int8List yearEvents, Map<int, int>? dhia) {
-    bool leap = HebrewDateToolkit.isLeap(yearLength);
+    bool leap = YDateUtils.isLeap(yearLength);
     for (int ev = 0; ev < evdb.length; ++ev) {
       HebrewMonth monthId = evdb[ev].monthId;
       if (monthId == HebrewMonth.ADAR && leap) {
@@ -441,7 +441,7 @@ class AnnualEvents {
           !leap) {
         continue;
       }
-      int diy = HebrewDateToolkit.dayInYearByMonthId(
+      int diy = YDateUtils.dayInYearByMonthId(
           yearLength, monthId, evdb[ev].dayOfMonth);
       if (evdb[ev].daySpan == 1) {
         bool enableEvent = true;

@@ -89,7 +89,7 @@ enum HebrewAlphaBet {
   Tav,
 }
 
-class HebrewDateToolkit {
+class YDateUtils {
   static bool isLeap(int yearLength) => yearLength > 355;
   static int dayInYearByMonthId(int yearLength, HebrewMonth monthId, int day) =>
       HebrewDate._calculateDayInYear(yearLength,
@@ -202,10 +202,10 @@ class HebrewDate extends ADMYDate {
   static const int WEEK = (7 * DAY);
 
   /// Length of month in hour-parts (1080).
-  static final int MONTH = 29 * DAY + HP(12, 793);
+  static final int MONTH = 29 * DAY + _HP(12, 793);
 
   /// Molad of the estimated first month was on monday of the seven days of genesis, in the sixth hour (starting from sunset).
-  static final int MOLAD = DayOfWeek.Monday.index * DAY + HP(5, 204);
+  static final int MOLAD = DayOfWeek.Monday.index * DAY + _HP(5, 204);
 
   /// The number of months in 19 years.
   /// The jewish dating system has cycles of 19 years where 7 of the 19 has 13 month in year, and the other 12 has 12 month in year.
@@ -346,7 +346,7 @@ class HebrewDate extends ADMYDate {
     13
   ];
 
-  static int HP(int h, int p) => h * HOUR + p;
+  static int _HP(int h, int p) => h * HOUR + p;
 
   /// Year. valid range: 4119..6000 (year 1 was the first year).
   int _year = 0;
@@ -629,13 +629,13 @@ class HebrewDate extends ADMYDate {
     if (parts_mod < DAY - MOLAD_ZAKEN_ROUNDING) {
       if (year_type < 12) //regular year (non leap)
       {
-        if (week_day == DayOfWeek.Tuesday && parts_mod >= HP(9, 204)) {
+        if (week_day == DayOfWeek.Tuesday && parts_mod >= _HP(9, 204)) {
           return days + 2; //we need to add 2 because Wednesday comes next (ADU)
         }
       }
       if (year_type < 7) //a year after a leap year
       {
-        if (week_day == DayOfWeek.Monday && parts_mod >= HP(15, 589)) {
+        if (week_day == DayOfWeek.Monday && parts_mod >= _HP(15, 589)) {
           return days + 1; //we need to add only 1..
         }
       }
@@ -1031,7 +1031,7 @@ class HebrewDate extends ADMYDate {
         return false;
       }
     }
-    int pessach_day = HebrewDateToolkit.dayInYearByMonthId(
+    int pessach_day = YDateUtils.dayInYearByMonthId(
         _yearLength, HebrewMonth.NISAN, 15);
     if (_dayInYear >= pessach_day) {
       return false;
@@ -1096,7 +1096,7 @@ class HebrewDate extends ADMYDate {
      get the formal year type in Hebrew letters.
     */
   HebrewYearSign yearSign() {
-    int day_of_pessah = HebrewDateToolkit.dayInYearByMonthId(
+    int day_of_pessah = YDateUtils.dayInYearByMonthId(
             _yearLength, HebrewMonth.NISAN, 15) +
         _yearFirstDay;
     return HebrewYearSign(
@@ -1109,7 +1109,7 @@ class HebrewDate extends ADMYDate {
           ][_yearLength % 10 - 3],
           HebrewAlphaBet.values[day_of_pessah % 7]
         ],
-        HebrewDateToolkit.isLeap(_yearLength)
+        YDateUtils.isLeap(_yearLength)
             ? YearLeapType.MEUBERET
             : YearLeapType.PESHUTA);
   }
@@ -1120,7 +1120,7 @@ class HebrewDate extends ADMYDate {
 
   ChanukkahDay get dayOfChanukkah {
     int diy = dayInYear;
-    int chnkday = HebrewDateToolkit.dayInYearByMonthId(
+    int chnkday = YDateUtils.dayInYearByMonthId(
         _yearLength, HebrewMonth.KISLEV, 25);
     return (diy >= chnkday && diy < chnkday + 8)
         ? ChanukkahDay.values[diy - chnkday + ChanukkahDay.DAY_I.index]
@@ -1132,7 +1132,7 @@ class HebrewDate extends ADMYDate {
      * @return the day in year of the nine av fast day
      */
   int nineAvDayInYear() {
-    int nine_av = HebrewDateToolkit.dayInYearByMonthId(
+    int nine_av = YDateUtils.dayInYearByMonthId(
         _yearLength, HebrewMonth.AV, 9); // 9 in Av.
     if ((nine_av + _yearFirstDay) % 7 == ADate.SATURDAY) {
       ++nine_av;
